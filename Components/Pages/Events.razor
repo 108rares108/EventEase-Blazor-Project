@@ -1,0 +1,75 @@
+@page "/events"
+@inject EventService EventData
+
+<PageTitle>Events | EventEase</PageTitle>
+
+<section class="page-shell page-section">
+    <div class="page-heading">
+        <div>
+            <p class="eyebrow">Find your next gathering</p>
+            <h1>Events</h1>
+            <p class="page-lead">Browse the current events, check availability, or update an event's details.</p>
+        </div>
+        <span class="count-pill">@events.Count events</span>
+    </div>
+
+    @if (events.Count == 0)
+    {
+        <div class="empty-state"><h2>No events yet</h2><p>New events will appear here.</p></div>
+    }
+    else
+    {
+        <div class="event-grid">
+            @foreach (var item in events)
+            {
+                <div class="event-wrap" @key="item.Id">
+                    <EventCard Event="item" />
+                    <div class="card-actions">
+                        <button class="button button-secondary" @onclick="() => SelectEvent(item.Id)">Edit details</button>
+                        <a class="button button-primary" href="@($"/register/{item.Id}")">Register</a>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+
+    @if (selectedEvent is not null)
+    {
+        <section class="editor-section">
+            <div class="section-heading">
+                <div>
+                    <p class="eyebrow">Update the information</p>
+                    <h2>Edit selected event</h2>
+                    <p class="muted-copy">Changes are reflected in the event list for this demo session.</p>
+                </div>
+            </div>
+            <EventCard @bind-Event:get="selectedEvent" @bind-Event:set="HandleEventChanged" Editable="true" />
+        </section>
+    }
+</section>
+
+@code {
+    private List<EventItem> events = [];
+    private EventItem? selectedEvent;
+
+    protected override void OnInitialized()
+    {
+        RefreshEvents();
+    }
+
+    private void RefreshEvents()
+    {
+        events = EventData.GetEvents();
+    }
+
+    private void SelectEvent(int id)
+    {
+        selectedEvent = EventData.GetEventById(id);
+    }
+
+    private void HandleEventChanged(EventItem updatedEvent)
+    {
+        selectedEvent = updatedEvent;
+        RefreshEvents();
+    }
+}

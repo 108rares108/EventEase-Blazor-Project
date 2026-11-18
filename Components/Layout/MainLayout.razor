@@ -1,0 +1,40 @@
+@inherits LayoutComponentBase
+@inject SessionState Session
+
+<div class="site-frame">
+    <header class="site-header">
+        <a class="brand" href="/" aria-label="EventEase home">
+            <span class="brand-mark">E</span>
+            <span>EventEase</span>
+        </a>
+        <nav class="main-nav" aria-label="Main navigation">
+            <NavLink href="/" Match="NavLinkMatch.All">Home</NavLink>
+            <NavLink href="/events">Events</NavLink>
+            <NavLink href="/attendance">Attendance</NavLink>
+        </nav>
+        <div class="session-area">
+            @if (!string.IsNullOrWhiteSpace(Session.CurrentUserName))
+            {
+                <span class="session-name">Hi, @Session.CurrentUserName</span>
+                <button class="text-button" @onclick="SignOut">Sign out</button>
+            }
+            else
+            {
+                <span class="session-name">Plan something memorable</span>
+            }
+        </div>
+    </header>
+
+    <main>
+        @Body
+    </main>
+
+    <footer class="site-footer">
+        <span>EventEase</span>
+        <span>Simple event planning and attendance management</span>
+    </footer>
+</div>
+
+@code {
+    private void SignOut() => Session.SignOut();
+}

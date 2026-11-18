@@ -1,0 +1,98 @@
+@page "/register/{EventId:int}"
+@inject EventService EventData
+@inject SessionState Session
+@inject NavigationManager Navigation
+
+<PageTitle>Register | EventEase</PageTitle>
+
+<section class="page-shell page-section narrow-section">
+    @if (selectedEvent is null)
+    {
+        <div class="empty-state">
+            <p class="eyebrow">Registration</p>
+            <h1>Event not found</h1>
+            <p>This event may have been removed or the link may be incorrect.</p>
+            <a class="button button-primary" href="/events">Back to events</a>
+        </div>
+    }
+    else
+    {
+        <div class="page-heading compact-heading">
+            <div>
+                <p class="eyebrow">Save your place</p>
+                <h1>Event registration</h1>
+                <p class="page-lead">Complete the form below to add your name to the attendee list.</p>
+            </div>
+        </div>
+
+        <div class="registration-event-summary">
+            <span class="event-date">@selectedEvent.Date.ToString("dd MMM yyyy · HH:mm")</span>
+            <h2>@selectedEvent.Title</h2>
+            <p>@selectedEvent.Location</p>
+            <span class="seat-count">@selectedEvent.AvailableSeats seats available</span>
+        </div>
+
+        @if (!string.IsNullOrWhiteSpace(errorMessage))
+        {
+            <div class="alert alert-error" role="alert">@errorMessage</div>
+        }
+
+        <EditForm Model="registration" OnValidSubmit="SubmitRegistration" class="form-panel">
+            <DataAnnotationsValidator />
+            <ValidationSummary />
+            <div class="field">
+                <label for="full-name">Full name</label>
+                <InputText id="full-name" class="input" @bind-Value="registration.FullName" placeholder="Your name" autocomplete="name" />
+                <ValidationMessage For="@(() => registration.FullName)" />
+            </div>
+            <div class="field">
+                <label for="email">Email address</label>
+                <InputText id="email" class="input" @bind-Value="registration.Email" placeholder="you@example.com" autocomplete="email" />
+                <ValidationMessage For="@(() => registration.Email)" />
+            </div>
+            <div class="field">
+                <label for="tickets">Number of tickets</label>
+                <InputNumber id="tickets" class="input" @bind-Value="registration.Tickets" min="1" max="5" />
+                <ValidationMessage For="@(() => registration.Tickets)" />
+                <span class="field-hint">You can reserve between 1 and 5 tickets.</span>
+            </div>
+            <button class="button button-primary button-full" type="submit" disabled="@(selectedEvent.AvailableSeats == 0)">Complete registration</button>
+        </EditForm>
+    }
+</section>
+
+@code {
+    [Parameter]
+    public int EventId { get; set; }
+
+    private EventItem? selectedEvent;
+    private RegistrationInput registration = new();
+    private string? errorMessage;
+
+    protected override void OnParametersSet()
+    {
+        selectedEvent = EventData.GetEventById(EventId);
+        registration = new RegistrationInput();
+        errorMessage = null;
+    }
+
+    private void SubmitRegistration()
+    {
+        if (selectedEvent is null)
+        {
+            errorMessage = "This event could not be found.";
+            return;
+        }
+
+        var result = EventData.TryRegister(selectedEvent.Id, registration);
+        if (!result.Success)
+        {
+            errorMessage = result.Message;
+            selectedEvent = EventData.GetEventById(EventId);
+            return;
+        }
+
+        Session.SignIn(registration.FullName);
+        Navigation.NavigateTo("/attendance");
+    }
+}

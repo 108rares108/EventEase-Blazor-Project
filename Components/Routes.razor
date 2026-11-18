@@ -1,0 +1,17 @@
+<Router AppAssembly="typeof(Program).Assembly">
+    <Found Context="routeData">
+        <RouteView RouteData="routeData" DefaultLayout="typeof(MainLayout)" />
+        <FocusOnNavigate RouteData="routeData" Selector="h1" />
+    </Found>
+    <NotFound>
+        <PageTitle>Page not found | EventEase</PageTitle>
+        <LayoutView Layout="typeof(MainLayout)">
+            <section class="page-shell empty-state">
+                <p class="eyebrow">404 error</p>
+                <h1>We couldn't find that page.</h1>
+                <p>Check the address or return to the EventEase home page.</p>
+                <a class="button button-primary" href="/">Go to home</a>
+            </section>
+        </LayoutView>
+    </NotFound>
+</Router>

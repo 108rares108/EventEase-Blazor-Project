@@ -1,0 +1,110 @@
+@page "/attendance"
+@inject EventService EventData
+
+<PageTitle>Attendance | EventEase</PageTitle>
+
+<section class="page-shell page-section">
+    <div class="page-heading">
+        <div>
+            <p class="eyebrow">On the day</p>
+            <h1>Attendance tracker</h1>
+            <p class="page-lead">Review registrations and mark attendees as present when they arrive.</p>
+        </div>
+        <button class="button button-secondary" @onclick="Refresh">Refresh list</button>
+    </div>
+
+    <div class="overview-grid attendance-overview">
+        <div class="overview-card">
+            <span class="overview-label">Registrations</span>
+            <strong>@registrations.Count</strong>
+            <span class="overview-hint">Individual sign-ups</span>
+        </div>
+        <div class="overview-card">
+            <span class="overview-label">Reserved tickets</span>
+            <strong>@totalTickets</strong>
+            <span class="overview-hint">Total places reserved</span>
+        </div>
+        <div class="overview-card">
+            <span class="overview-label">Checked-in tickets</span>
+            <strong>@checkedInTickets</strong>
+            <span class="overview-hint">Tickets marked attended</span>
+        </div>
+    </div>
+
+    @if (registrations.Count == 0)
+    {
+        <div class="empty-state attendance-empty">
+            <h2>No registrations yet</h2>
+            <p>When someone registers for an event, their details will appear here.</p>
+            <a class="button button-primary" href="/events">Browse events</a>
+        </div>
+    }
+    else
+    {
+        <div class="table-panel">
+            <div class="table-scroll">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Attendee</th>
+                            <th>Event</th>
+                            <th>Tickets</th>
+                            <th>Registration date</th>
+                            <th>Status</th>
+                            <th><span class="sr-only">Action</span></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var item in registrations)
+                        {
+                            <tr @key="item.Id">
+                                <td>
+                                    <strong>@item.FullName</strong>
+                                    <span class="table-subtext">@item.Email</span>
+                                </td>
+                                <td>@GetEventTitle(item.EventId)</td>
+                                <td>@item.Tickets</td>
+                                <td>@item.RegisteredAt.ToString("dd MMM yyyy")</td>
+                                <td>
+                                    <span class="status-pill @(item.Attended ? "status-present" : "status-pending")">
+                                        @(item.Attended ? "Present" : "Pending")
+                                    </span>
+                                </td>
+                                <td>
+                                    <button class="small-action" @onclick="() => ToggleAttendance(item.Id)">
+                                        @(item.Attended ? "Undo check-in" : "Mark present")
+                                    </button>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    }
+</section>
+
+@code {
+    private List<RegistrationRecord> registrations = [];
+    private int totalTickets => registrations.Sum(item => item.Tickets);
+    private int checkedInTickets => registrations.Where(item => item.Attended).Sum(item => item.Tickets);
+
+    protected override void OnInitialized()
+    {
+        Refresh();
+    }
+
+    private void Refresh()
+    {
+        registrations = EventData.GetRegistrations();
+    }
+
+    private void ToggleAttendance(int registrationId)
+    {
+        EventData.ToggleAttendance(registrationId);
+        Refresh();
+    }
+
+    private string GetEventTitle(int eventId) =>
+        EventData.GetEventById(eventId)?.Title ?? "Unknown event";
+}

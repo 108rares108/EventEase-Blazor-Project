@@ -1,0 +1,79 @@
+@page "/"
+@inject EventService EventData
+
+<PageTitle>Home | EventEase</PageTitle>
+
+<section class="hero page-shell">
+    <div class="hero-copy">
+        <p class="eyebrow">Make every gathering count</p>
+        <h1>Good events start with <span>less busywork.</span></h1>
+        <p class="hero-lead">Keep event details, registrations, and attendance in one straightforward place.</p>
+        <div class="hero-actions">
+            <a class="button button-primary" href="/events">Explore events</a>
+            <a class="button button-secondary" href="/attendance">View attendance</a>
+        </div>
+    </div>
+    <div class="hero-note">
+        <span class="hero-note-icon">✦</span>
+        <p>Plan clearly.<br />Welcome everyone.<br />Stay organised.</p>
+    </div>
+</section>
+
+<section class="page-shell overview-section">
+    <div class="section-heading">
+        <div>
+            <p class="eyebrow">Your event space</p>
+            <h2>Everything at a glance</h2>
+        </div>
+    </div>
+    <div class="overview-grid">
+        <div class="overview-card">
+            <span class="overview-label">Available events</span>
+            <strong>@events.Count</strong>
+            <span class="overview-hint">Ready to explore</span>
+        </div>
+        <div class="overview-card">
+            <span class="overview-label">New tickets reserved</span>
+            <strong>@ticketCount</strong>
+            <span class="overview-hint">From registrations in this session</span>
+        </div>
+        <div class="overview-card">
+            <span class="overview-label">Tracked registrations</span>
+            <strong>@registrationCount</strong>
+            <span class="overview-hint">Names on the list</span>
+        </div>
+    </div>
+</section>
+
+<section class="page-shell featured-section">
+    <div class="section-heading">
+        <div>
+            <p class="eyebrow">Coming up</p>
+            <h2>Featured events</h2>
+        </div>
+        <a class="inline-link" href="/events">See all events →</a>
+    </div>
+    <div class="event-grid">
+        @foreach (var item in events.Take(3))
+        {
+            <div class="event-wrap">
+                <EventCard Event="item" />
+                <a class="button button-secondary button-full" href="@($"/register/{item.Id}")">Register for this event</a>
+            </div>
+        }
+    </div>
+</section>
+
+@code {
+    private List<EventItem> events = [];
+    private int registrationCount;
+    private int ticketCount;
+
+    protected override void OnInitialized()
+    {
+        events = EventData.GetEvents();
+        var registrations = EventData.GetRegistrations();
+        registrationCount = registrations.Count;
+        ticketCount = registrations.Sum(item => item.Tickets);
+    }
+}
